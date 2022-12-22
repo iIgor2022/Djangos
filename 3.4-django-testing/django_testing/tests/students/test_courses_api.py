@@ -1,4 +1,5 @@
 import pytest
+from django.urls import reverse
 from rest_framework.test import APIClient
 from model_bakery import baker
 from students.models import Student, Course
@@ -11,7 +12,7 @@ def client():
 
 @pytest.fixture
 def route():
-    return '/api/v1/courses/'
+    return reverse('courses-list')
 
 
 @pytest.fixture
@@ -37,13 +38,13 @@ def test_get_course(client, route, student_factory, course_factory):
     course = course_factory(_quantity=1)
 
     # Act
-    response = client.get(route)
+    response = client.get(f'{route}{course[0].pk}/')
 
     # Assert
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == len(course)
-    assert data[0]['name'] == course[0].name
+    assert data.get('id') == course[0].pk
+    assert data.get('name') == course[0].name
 
 
 @pytest.mark.django_db
@@ -68,7 +69,7 @@ def test_course_filter_by_id(client, route, student_factory, course_factory):
     """Filtering corses by id"""
     courses = course_factory(_quantity=2)
 
-    response = client.get(f'{route}?id={courses[0].pk}')
+    response = client.get(route, data={'id': courses[0].pk})
 
     assert response.status_code == 200
     data = response.json()
@@ -80,7 +81,7 @@ def test_course_filter_by_name(client, route, student_factory, course_factory):
     """Filtering corses by name"""
     courses = course_factory(_quantity=2)
 
-    response = client.get(f'{route}?name={courses[0].name}')
+    response = client.get(route, data={'name': courses[0].name})
 
     assert response.status_code == 200
     data = response.json()

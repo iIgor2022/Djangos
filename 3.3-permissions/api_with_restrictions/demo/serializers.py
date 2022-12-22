@@ -43,7 +43,6 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Метод для валидации. Вызывается при создании и обновлении."""
-
         if Advertisement.objects.filter(creator=self.context['request'].user).filter(status='OPEN').count() < 10:
             return data
         else:
@@ -51,6 +50,9 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 
 
 class FavoriteAdvertisementSerializer(serializers.ModelSerializer):
+    # user = UserSerializer()
+    # advertisement = AdvertisementSerializer()
+
     class Meta:
         model = FavoriteAdvertisement
         fields = [
@@ -58,20 +60,33 @@ class FavoriteAdvertisementSerializer(serializers.ModelSerializer):
             'advertisement'
         ]
 
+    def validate(self, data):
+        if data['advertisement'].creator == data['user']:
+            raise ValidationError('The ad owner cannot add it to the favorites')
+        return data
+
+    def create(self, validated_data):
+        user = validated_data['user']
+        fav_adv = user.favorite_adv_intermediate.create(
+            advertisement=validated_data['advertisement']
+        )
+        return fav_adv
+
 
 class UserFavoriteSerializer(serializers.ModelSerializer):
     favorites = FavoriteAdvertisementSerializer(many=True)
 
     class Meta:
-        model = User
+        model = FavoriteAdvertisement
         fields = [
             'id',
-            'username',
+            'user',
+            'advertisement',
             'favorites'
         ]
 
     def validate(self, data):
-        if Advertisement.objects.get(id=data.data['id']).creator == data.user:
+        if Advertisement.objects.get(id=data.data['id']).creator == self.context['request'].user:
             raise ValidationError('The ad owner cannot add it to the favorites')
         return data
 

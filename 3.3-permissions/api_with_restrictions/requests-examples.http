@@ -51,7 +51,7 @@ Content-Type: application/json
 ###
 
 # фильтрация по избранным объявлениям
-GET {{baseUrl}}/demo/favorite
+GET {{baseUrl}}/demo/favorite/
 Content-Type: application/json
 Authorization: Token 7ecb993fe261108c5ad25edfdbbdf8494e8be7ae
 
@@ -63,5 +63,5 @@ Content-Type: application/json
 Authorization: Token 7ecb993fe261108c5ad25edfdbbdf8494e8be7ae
 
 {
-  "id": 1
+  "id": 7
 }
